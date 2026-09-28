@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yönetici Paneli - Siparişler</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(rgba(16, 16, 16, 0.95), rgba(25, 25, 25, 0.95)), url('https://minecraft.net');
+            background-repeat: repeat; color: #fff; padding: 30px; margin: 0;
+        } 
+        .admin-container {
+            max-width: 900px; margin: 0 auto; background: rgba(30, 30, 30, 0.95); padding: 25px; border-radius: 12px; border: 3px solid #ffaa00; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+        }
+        h2 { color: #ffaa00; text-shadow: 2px 2px #442200; margin-top: 0; text-align: center; }
+        .nav-box { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        button { 
+            padding: 10px 20px; background: #222; color: #ffaa00; border: 2px solid #ffaa00; border-radius: 6px; cursor: pointer; font-weight: bold;
+        }
+        button:hover { background: #ffaa00; color: #000; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #151515; border-radius: 6px; overflow: hidden; }
+        th, td { border: 1px solid #333; padding: 14px; text-align: left; }
+        th { background-color: #222; color: #ffaa00; font-weight: bold; }
+        tr:nth-child(even) { background-color: #1c1c1c; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h2>👑 Gelen Sipariş Listesi (Yönetici Paneli)</h2>
+        <div class="nav-box">
+            <button onclick="loadOrders()">🔄 Listeyi Yenile</button>
+            <button onclick="window.location.href='index.html'" style="border-color:#55ff55; color:#55ff55;">🛒 Markete Dön</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sipariş Zamanı</th>
+                    <th>Oyuncu Adı</th>
+                    <th>Teslimat Konumu</th>
+                    <th>İstediği Ürün (Fiyat)</th>
+                </tr>
+            </thead>
+            <tbody id="orderList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadOrders() {
+            const username = localStorage.getItem('mc_user');
+            if (!username) { window.location.href = 'giris.html'; return; }
+
+            const res = await fetch(`http://localhost:3000/api/orders?username=${username}`);
+            
+            if (res.status === 403) {
+                document.body.innerHTML = "<div style='text-align:center; margin-top:100px;'><h1 style='color:#ff5555;'>❌ ERİŞİM ENGELLENDİ!</h1><p style='color:#aaa;'>Bu sayfayı yalnızca yönetici (WeriqX) görebilir.</p><br><a href='index.html' style='color:#55ff55;'>Market Sayfasına Dön</a></div>";
+                return;
+            }
+
+            const orders = await res.json();
+            const list = document.getElementById('orderList');
+            list.innerHTML = '';
+
+            if (orders.length === 0) {
+                list.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#aaa;">Henüz sipariş yok.</td></tr>';
+                return;
+            }
+
+            orders.reverse().forEach(o => {
+                list.innerHTML += `<tr>
+                    <td style="color: #aaa;">${new Date(o.date).toLocaleString()}</td>
+                    <td style="color:#55ff55; font-weight:bold;">${o.username}</td>
+                    <td>${o.address}</td>
+                    <td style="color:#ffff55;">${o.product}</td>
+                </tr>`;
+            });
+        }
+        loadOrders();
+        setInterval(loadOrders, 5000);
+    </script>
+</body>
+</html>
