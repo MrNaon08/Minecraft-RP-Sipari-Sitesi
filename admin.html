@@ -2,7 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Yönetici Paneli - Siparişler</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetici Paneli - Sipariş Yönetimi</title>
     <style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -22,22 +23,25 @@
         th, td { border: 1px solid #333; padding: 14px; text-align: left; }
         th { background-color: #222; color: #ffaa00; font-weight: bold; }
         tr:nth-child(even) { background-color: #1c1c1c; }
+        .delete-btn { background: #aa0000; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .delete-btn:hover { background: #ff5555; }
     </style>
 </head>
 <body>
-    <div class="admin-container">
+    <div class="admin-container" id="mainContent" style="display:none;">
         <h2>👑 Gelen Sipariş Listesi (Yönetici Paneli)</h2>
         <div class="nav-box">
             <button onclick="loadOrders()">🔄 Listeyi Yenile</button>
-            <button onclick="window.location.href='index.html'" style="border-color:#55ff55; color:#55ff55;">🛒 Markete Dön</button>
+            <button onclick="window.location.href='/'" style="border-color:#55ff55; color:#55ff55;">🛒 Markete Git</button>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>Sipariş Zamanı</th>
-                    <th>Oyuncu Adı</th>
-                    <th>Teslimat Konumu</th>
-                    <th>İstediği Ürün (Fiyat)</th>
+                    <th>Zaman</th>
+                    <th>Oyuncu</th>
+                    <th>Konum</th>
+                    <th>Ürün (Fiyat)</th>
+                    <th>İşlem</th>
                 </tr>
             </thead>
             <tbody id="orderList"></tbody>
@@ -45,37 +49,49 @@
     </div>
 
     <script>
+        // Şifre Giriş Kontrolü
+        const sifre = prompt("Lütfen Admin Giriş Şifresini Yazın:");
+        if (sifre !== "1108") {
+            alert("Hatalı şifre! Giriş engellendi.");
+            window.location.href = "/";
+        } else {
+            document.getElementById('mainContent').style.display = "block";
+            loadOrders();
+            setInterval(loadOrders, 5000); // 5 saniyede bir otomatik yenileme
+        }
+
         async function loadOrders() {
-            const username = localStorage.getItem('mc_user');
-            if (!username) { window.location.href = 'giris.html'; return; }
-
-            const res = await fetch(`https://onrender.com{username}`);
-            
-            if (res.status === 403) {
-                document.body.innerHTML = "<div style='text-align:center; margin-top:100px;'><h1 style='color:#ff5555;'>❌ ERİŞİM ENGELLENDİ!</h1><p style='color:#aaa;'>Bu sayfayı yalnızca yönetici (WeriqX) görebilir.</p><br><a href='index.html' style='color:#55ff55;'>Market Sayfasına Dön</a></div>";
-                return;
-            }
-
+            const res = await fetch(`https://onrender.com`);
             const orders = await res.json();
             const list = document.getElementById('orderList');
             list.innerHTML = '';
 
             if (orders.length === 0) {
-                list.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#aaa;">Henüz sipariş yok.</td></tr>';
+                list.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#aaa;">Henüz sipariş yok.</td></tr>';
                 return;
             }
 
             orders.reverse().forEach(o => {
                 list.innerHTML += `<tr>
-                    <td style="color: #aaa;">${new Date(o.date).toLocaleString()}</td>
+                    <td style="color: #aaa;">${new Date(o.date).toLocaleTimeString()}</td>
                     <td style="color:#55ff55; font-weight:bold;">${o.username}</td>
                     <td>${o.address}</td>
                     <td style="color:#ffff55;">${o.product}</td>
+                    <td><button class="delete-btn" onclick="deleteOrder('${o.id}')">✕ Teslim Edildi (Sil)</button></td>
                 </tr>`;
             });
         }
-        loadOrders();
-        setInterval(loadOrders, 5000);
+
+        async function deleteOrder(orderId) {
+            const res = await fetch(`https://onrender.com/${orderId}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                loadOrders(); // Listeyi anında yeniler
+            } else {
+                alert("Sipariş silinirken hata oluştu.");
+            }
+        }
     </script>
 </body>
 </html>
