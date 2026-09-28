@@ -3,12 +3,11 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-// Tarayıcı ve form uyumluluk ayarları
 app.use(cors({ origin: '*' }));
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
 
-// Sabit kayıtlı hesaplar
+// Tanımlı hesaplar
 let users = [
     { username: "WeriqX", password: "1108", role: "admin" },
     { username: "selimk", password: "2344", role: "user" },
@@ -17,17 +16,17 @@ let users = [
 
 let orders = [];
 
-// Ana sayfaya girildiğinde direkt giriş ekranını yükler
+// Ana sayfa giriş ekranını açar
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'giris.html'));
 });
 
-// HTML sayfalarının isimleriyle çağrılabilmesi için genel köprü
+// HTML sayfalarının isimleriyle çağrılabilmesi için köprü
 app.get('/:page.html', (req, res) => {
     res.sendFile(path.join(__dirname, `${req.params.page}.html`));
 });
 
-// GİRİŞ YAP (Hem POST hem GET hatalarını yakalayan güvenli endpoint)
+// GİRİŞ YAP
 app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
     
@@ -51,16 +50,16 @@ app.post('/api/auth/login', (req, res) => {
         `);
     }
     
-    // Kullanıcıyı tarayıcı hafızasına alıp markete geçiren JavaScript köprüsü
+    // Render tanıtım sayfasına kaçmasını önlemek için tam adres tetikleniyor
     res.send(`
         <script>
             localStorage.setItem('mc_user', '${user.username}');
-            window.location.href = '/index.html';
+            window.location.href = 'https://onrender.com';
         </script>
     `);
 });
 
-// Yanlışlıkla GET isteği atılırsa hata vermek yerine kullanıcıyı ana sayfaya fırlatır
+// GET isteklerini ana sayfaya fırlatır
 app.get('/api/auth/login', (req, res) => {
     res.redirect('/');
 });
