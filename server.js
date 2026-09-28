@@ -3,12 +3,12 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-// Form ve JSON verilerini okumak için gerekli olan en kritik ayarlar (En üstte olmalı)
+// Tarayıcı ve form uyumluluk ayarları
+app.use(cors({ origin: '*' }));
 app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
-app.use(cors({ origin: '*' }));
 
-// Sabit hesaplar
+// Sabit kayıtlı hesaplar
 let users = [
     { username: "WeriqX", password: "1108", role: "admin" },
     { username: "selimk", password: "2344", role: "user" },
@@ -17,28 +17,25 @@ let users = [
 
 let orders = [];
 
-// Ana sayfa giriş ekranını açar
+// Ana sayfaya girildiğinde direkt giriş ekranını yükler
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'giris.html'));
 });
 
-// Sayfaların adıyla çağrılabilmesi için köprü
+// HTML sayfalarının isimleriyle çağrılabilmesi için genel köprü
 app.get('/:page.html', (req, res) => {
     res.sendFile(path.join(__dirname, `${req.params.page}.html`));
 });
 
-// GİRİŞ YAP
+// GİRİŞ YAP (Hem POST hem GET hatalarını yakalayan güvenli endpoint)
 app.post('/api/auth/login', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+    const { username, password } = req.body;
     
-    // Verilerin ulaşıp ulaşmadığını kontrol eden güvenlik adımı
     if (!username || !password) {
         return res.send(`
             <div style="text-align:center; font-family:sans-serif; margin-top:50px; color:#ff5555;">
-                <h1>Hata: Kullanıcı adı veya şifre sunucuya ulaşmadı!</h1>
-                <p>Lütfen formu doldurduğunuzdan emin olun.</p>
-                <br><a href="/" style="color:#55ff55; font-size:18px;">Tekrar Dene</a>
+                <h1>Hata: Kullanıcı adı veya şifre boş bırakılamaz!</h1>
+                <br><a href="/" style="color:#55ff55; font-size:18px;">Geri Dön</a>
             </div>
         `);
     }
@@ -54,13 +51,18 @@ app.post('/api/auth/login', (req, res) => {
         `);
     }
     
-    // Giriş yapan kullanıcıyı tarayıcıda hatırlamak için yönlendirme öncesi küçük bir onay sayfası gösteriyoruz
+    // Kullanıcıyı tarayıcı hafızasına alıp markete geçiren JavaScript köprüsü
     res.send(`
         <script>
             localStorage.setItem('mc_user', '${user.username}');
             window.location.href = '/index.html';
         </script>
     `);
+});
+
+// Yanlışlıkla GET isteği atılırsa hata vermek yerine kullanıcıyı ana sayfaya fırlatır
+app.get('/api/auth/login', (req, res) => {
+    res.redirect('/');
 });
 
 // SİPARİŞ OLUŞTUR
