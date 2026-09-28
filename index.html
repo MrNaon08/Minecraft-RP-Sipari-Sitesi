@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Gelişmiş Market Sistemi</title>
     <style>
         body { 
@@ -13,8 +14,7 @@
             max-width: 600px; margin: 0 auto; background: rgba(35, 35, 35, 0.95); padding: 30px; border-radius: 12px; border: 3px solid #4a4a4a; box-shadow: 0 8px 24px rgba(0,0,0,0.7);
         }
         h2 { color: #55ff55; text-shadow: 2px 2px #004400; margin-top: 0; }
-        h3 { color: #ffffff; border-bottom: 2px solid #555; padding-bottom: 8px; margin-top: 25px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; text-align: left; color: #aaa; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; text-align: left; color: #aaa; font-size: 16px; margin-top: 15px;}
         input, select { 
             display: block; margin-bottom: 20px; padding: 12px; width: 100%; box-sizing: border-box; background: #1a1a1a; color: #fff; border: 2px solid #555; border-radius: 6px; font-size: 15px;
         }
@@ -24,16 +24,17 @@
             padding: 14px 20px; background: #00aa00; color: white; border: none; border-bottom: 4px solid #004400; border-radius: 6px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; text-shadow: 1px 1px #002200;
         }
         button:hover { background: #55ff55; color: #000; border-bottom: 4px solid #00aa00; }
-        .admin-btn { background: #555; border-bottom: 4px solid #333; margin-top: 10px; font-size: 14px; padding: 8px; width: 100%; box-sizing: border-box;}
-        .admin-btn:hover { background: #ffaa00; border-bottom: 4px solid #aa6600; color: #000; }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>⛏️ Sunucu Sipariş Merkezi ⚔️</h2>
-        <p>Hoş geldin, <strong style="color: #ffff55;" id="userDisplay">Oyuncu</strong>!</p>
+        <p style="color: #aaa;">Ürünleri seçin ve oyun içi teslimat için sipariş verin.</p>
         
         <form id="orderForm">
+            <label for="username">Minecraft Kullanıcı Adınız:</label>
+            <input type="text" id="username" placeholder="Örn: WeriqX, selimk, kenobi3761" required autocomplete="off">
+
             <label for="address">Teslimat Konumu (Koordinat veya Bölge):</label>
             <input type="text" id="address" placeholder="Örn: X:145 Z:-300 veya Ana Depo Önü" required>
             
@@ -56,33 +57,30 @@
 
             <div class="info-box">
                 <strong>💰 Güvenli Oyun İçi Ticaret:</strong><br>
-                Ödemeniz gereken <strong>Elmas</strong> veya <strong>Demir</strong> miktarını envanterinizde hazır bulundurun. Teslimatta alınacaktır.
+                Ödemeniz gereken <strong>Elmas</strong> veya <strong>Demir</strong> miktarını envanterinizde hazır bulundurun. Yetkili yanınıza geldiğinde tahsil edilecektir.
             </div>
 
-            <button type="submit">🛒 Siparişi Gönder</button>
+            <button type="submit">🛒 Siparişi Tamamla</button>
         </form>
-        <button onclick="window.location.href='admin.html'" class="admin-btn">👑 Yönetici Paneline Git</button>
     </div>
 
     <script>
-        const username = localStorage.getItem('mc_user');
-        if(!username) window.location.href = 'giris.html';
-        document.getElementById('userDisplay').innerText = username;
-
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const res = await fetch('https://onrender.com', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: username,
+                    username: document.getElementById('username').value.trim(),
                     address: document.getElementById('address').value,
                     product: document.getElementById('product').value
                 })
             });
             if(res.ok) {
-                alert('Siparişiniz başarıyla alındı!');
+                alert('Siparişiniz başarıyla sisteme gönderildi! Yetkili oyundan yanınıza gelecektir.');
                 document.getElementById('address').value = '';
+            } else {
+                alert('Bir hata oluştu, lütfen tekrar deneyin.');
             }
         });
     </script>
