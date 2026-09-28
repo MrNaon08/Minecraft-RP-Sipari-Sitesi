@@ -1,19 +1,30 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Sistem ilk açıldığında otomatik yüklenecek kayıtlı hesaplar
+// Tanımlı hesaplar
 let users = [
-    { username: "WeriqX", password: "1108", role: "admin" }, // Özel Yönetici Hesabı
-    { username: "selimk", password: "2344", role: "user" },  // Normal Kullanıcı
-    { username: "kenobi3761", password: "2344", role: "user" } // Normal Kullanıcı
+    { username: "WeriqX", password: "1108", role: "admin" },
+    { username: "selimk", password: "2344", role: "user" },
+    { username: "kenobi3761", password: "2344", role: "user" }
 ];
 
-// Siparişlerin tutulacağı liste
 let orders = [];
+
+// "Cannot GET /" hatasını çözen ana yönlendirme
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'giris.html'));
+});
+
+// Sayfaların isimleriyle çağrılabilmesi için (index.html, admin.html vb.)
+app.get('/:page.html', (req, res) => {
+    const page = req.params.page;
+    res.sendFile(path.join(__dirname, `${page}.html`));
+});
 
 // KAYIT OL
 app.post('/api/auth/register', (req, res) => {
@@ -23,7 +34,6 @@ app.post('/api/auth/register', (req, res) => {
     const userExists = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     if (userExists) return res.status(400).json({ message: "Bu kullanıcı adı zaten alınmış!" });
 
-    // Yeni kayıt olanlar varsayılan olarak normal kullanıcı olur
     users.push({ username, password, role: "user" });
     return res.status(200).json({ message: "Kayıt işlemi başarılı!" });
 });
@@ -35,11 +45,10 @@ app.post('/api/auth/login', (req, res) => {
     
     if (!user) return res.status(400).json({ message: "Kullanıcı adı veya şifre yanlış!" });
     
-    // Giriş başarılıysa kullanıcı adı ve rolünü tarayıcıya döner
     return res.status(200).json({ username: user.username, role: user.role });
 });
 
-// SİPARİŞ OLUŞTUR
+// S SİPARİŞ OLUŞTUR
 app.post('/api/orders', (req, res) => {
     const { username, address, product } = req.body;
     if (!username || !address || !product) return res.status(400).json({ message: "Sipariş bilgileri eksik." });
@@ -49,9 +58,9 @@ app.post('/api/orders', (req, res) => {
     return res.status(200).json({ message: "Siparişiniz listeye eklendi." });
 });
 
-// SİPARİŞLERİ ÇEK (Sadece Admin yetkisi olanlar görebilir)
+// SİPARİŞLERİ ÇEK
 app.get('/api/orders', (req, res) => {
-    const requester = req.query.username; // İstekte bulunan kullanıcı adı
+    const requester = req.query.username; 
     const user = users.find(u => u.username.toLowerCase() === requester.toLowerCase());
 
     if (!user || user.role !== 'admin') {
