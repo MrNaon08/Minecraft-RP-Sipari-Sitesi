@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Market - Giriş Yap</title>
     <style>
-        /* Minecraft Temalı ve Büyük Tasarım */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: linear-gradient(rgba(16, 16, 16, 0.9), rgba(25, 25, 25, 0.9)), url('https://minecraft.net');
@@ -17,26 +16,24 @@
             height: 100vh;
             margin: 0;
         } 
-
         .login-container {
             width: 100%;
-            max-width: 500px; /* Giriş kutusu genişletildi */
+            max-width: 500px;
             background: rgba(35, 35, 35, 0.95); 
-            padding: 40px; /* İç boşluklar büyütüldü */
+            padding: 40px;
             border-radius: 12px; 
             border: 4px solid #4a4a4a;
             box-shadow: 0 12px 36px rgba(0,0,0,0.8);
             box-sizing: border-box;
+            text-align: center;
         }
-
         h2 { 
             color: #55ff55; 
             text-shadow: 2px 2px #004400; 
             margin-top: 0; 
-            font-size: 32px; /* Yazı boyutu büyütüldü */
+            font-size: 32px;
             margin-bottom: 30px;
         }
-
         label {
             display: block;
             text-align: left;
@@ -45,27 +42,21 @@
             color: #aaa;
             font-size: 18px;
         }
-
         input { 
             display: block; 
             margin-bottom: 25px; 
-            padding: 15px; /* Giriş alanları büyütüldü */
+            padding: 15px; 
             width: 100%; 
             box-sizing: border-box; 
             background: #1a1a1a; 
             color: #fff; 
             border: 2px solid #555; 
             border-radius: 6px; 
-            font-size: 18px; /* Yazı boyutu büyütüldü */
+            font-size: 18px;
         }
-
-        input:focus { 
-            border-color: #55ff55; 
-            outline: none; 
-        }
-
+        input:focus { border-color: #55ff55; outline: none; }
         button { 
-            padding: 16px 20px; /* Buton büyütüldü */
+            padding: 16px 20px;
             background: #00aa00; 
             color: white; 
             border: none; 
@@ -73,24 +64,19 @@
             border-radius: 6px; 
             cursor: pointer; 
             width: 100%; 
-            font-size: 22px; /* Buton yazısı büyütüldü */
+            font-size: 22px;
             font-weight: bold;
             text-shadow: 1px 1px #002200;
-            transition: background 0.2s;
         }
-
         button:hover { 
             background: #55ff55; 
             color: #000; 
             border-bottom: 4px solid #00aa00; 
         }
-
-        .error-message {
-            color: #ff5555;
-            font-weight: bold;
-            margin-bottom: 15px;
-            font-size: 16px;
-            display: none;
+        .url-box {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #777;
         }
     </style>
 </head>
@@ -99,67 +85,18 @@
     <div class="login-container">
         <h2>⛏️ Market Girişi ⚔️</h2>
         
-        <div id="errorBox" class="error-message"></div>
-
-        <form id="loginForm">
+        <!-- JavaScript yerine doğrudan güvenli sunucu yönlendirmesi kullanıyoruz -->
+        <form action="/api/auth/login" method="POST">
             <label for="username">Minecraft Kullanıcı Adı:</label>
-            <input type="text" id="username" placeholder="Örn: WeriqX" required autocomplete="off">
+            <input type="text" id="username" name="username" placeholder="WeriqX" required autocomplete="off">
             
             <label for="password">Şifre:</label>
-            <input type="password" id="password" placeholder="••••" required>
+            <input type="password" id="password" name="password" placeholder="••••" required>
             
-            <button type="submit" id="submitBtn">Giriş Yap</button>
+            <button type="submit">Giriş Yap</button>
         </form>
+        <div class="url-box">weriqxmcsiparis.onrender.com</div>
     </div>
 
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const errorBox = document.getElementById('errorBox');
-            
-            // Çift tıklamayı engellemek için butonu geçici olarak kilitleyelim
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Giriş Yapılıyor...";
-            errorBox.style.display = "none";
-
-            const usernameInput = document.getElementById('username').value.trim();
-            const passwordInput = document.getElementById('password').value;
-
-            try {
-                // Kendi Render backend adresinizle tam uyumlu istek alanı
-                const res = await fetch('https://onrender.com', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    // Kullanıcı bilgilerini tarayıcı hafızasına kaydet ve yönlendir
-                    localStorage.setItem('mc_user', data.username);
-                    window.location.href = 'index.html';
-                } else {
-                    // Sunucudan gelen hata mesajını göster (Şifre yanlış vb.)
-                    errorBox.innerText = data.message || "Giriş başarısız.";
-                    errorBox.style.display = "block";
-                    submitBtn.disabled = false;
-                    submitBtn.innerText = "Giriş Yap";
-                }
-            } catch (error) {
-                // İnternet veya sunucu çökme hatası durumunda
-                console.error("Bağlantı hatası:", error);
-                errorBox.innerText = "Sunucuya bağlanılamadı! Lütfen Render panelinden sunucunun aktif olduğunu kontrol edin.";
-                errorBox.style.display = "block";
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Giriş Yap";
-            }
-        });
-    </script>
 </body>
 </html>
