@@ -4,10 +4,10 @@ const path = require('path');
 const app = express();
 
 app.use(cors({ origin: '*' }));
-app.use(express.urlencoded({ extended: true })); 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Tanımlı hesaplar
+// Sabit hesaplar
 let users = [
     { username: "WeriqX", password: "1108", role: "admin" },
     { username: "selimk", password: "2344", role: "user" },
@@ -21,47 +21,27 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'giris.html'));
 });
 
-// HTML sayfalarının isimleriyle çağrılabilmesi için köprü
-app.get('/:page.html', (req, res) => {
-    res.sendFile(path.join(__dirname, `${req.params.page}.html`));
+// Admin panelini açmak için köprü
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// GİRİŞ YAP
+// GİRİŞ YAP API
 app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
     
     if (!username || !password) {
-        return res.send(`
-            <div style="text-align:center; font-family:sans-serif; margin-top:50px; color:#ff5555;">
-                <h1>Hata: Kullanıcı adı veya şifre boş bırakılamaz!</h1>
-                <br><a href="/" style="color:#55ff55; font-size:18px;">Geri Dön</a>
-            </div>
-        `);
+        return res.status(400).json({ message: "Kullanıcı adı veya şifre boş bırakılamaz!" });
     }
 
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase().trim() && u.password === password.trim());
     
     if (!user) {
-        return res.send(`
-            <div style="text-align:center; font-family:sans-serif; margin-top:50px; color:#ff5555;">
-                <h1>Hata: Kullanıcı adı veya şifre yanlış!</h1>
-                <br><a href="/" style="color:#55ff55; font-size:18px;">Geri Dön ve Tekrar Dene</a>
-            </div>
-        `);
+        return res.status(400).json({ message: "Kullanıcı adı veya şifre yanlış!" });
     }
     
-    // Render tanıtım sayfasına kaçmasını önlemek için tam adres tetikleniyor
-    res.send(`
-        <script>
-            localStorage.setItem('mc_user', '${user.username}');
-            window.location.href = 'https://onrender.com';
-        </script>
-    `);
-});
-
-// GET isteklerini ana sayfaya fırlatır
-app.get('/api/auth/login', (req, res) => {
-    res.redirect('/');
+    // Yönlendirme yapmıyoruz, verileri json olarak güvenle dönüyoruz
+    return res.status(200).json({ username: user.username, role: user.role });
 });
 
 // SİPARİŞ OLUŞTUR
