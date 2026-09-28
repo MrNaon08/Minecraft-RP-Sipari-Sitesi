@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Minecraft Market - Kayıt Ol</title>
+    <style>body { font-family: sans-serif; background: #222; color: #fff; text-align: center; padding-top: 50px; } form { display: inline-block; background: #333; padding: 20px; border-radius: 8px; } input { display: block; margin: 10px 0; padding: 10px; width: 200px; }</style>
+</head>
+<body>
+    <h2>Kayıt Ekranı</h2>
+    <form id="regForm">
+        <input type="text" id="username" placeholder="Minecraft Kullanıcı Adı" required>
+        <input type="password" id="password" placeholder="Şifre" required>
+        <button type="submit">Kayıt Ol</button>
+    </form>
+    <p><a href="giris.html" style="color:#4caf50">Giriş Yap</a></p>
+    <script>
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('http://localhost:3000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: document.getElementById('username').value, password: document.getElementById('password').value })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if(res.ok) window.location.href = 'giris.html';
+        });
+    </script>
+</body>
+</html>
