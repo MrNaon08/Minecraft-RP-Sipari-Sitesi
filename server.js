@@ -3,10 +3,16 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-app.use(cors());
+// Güvenlik duvarını (CORS) dışarıdan gelecek her türlü isteğe tamamen açıyoruz
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Accept']
+}));
+
 app.use(express.json());
 
-// Tanımlı hesaplar
+// Kayıtlı hesaplar
 let users = [
     { username: "WeriqX", password: "1108", role: "admin" },
     { username: "selimk", password: "2344", role: "user" },
@@ -15,40 +21,34 @@ let users = [
 
 let orders = [];
 
-// "Cannot GET /" hatasını çözen ana yönlendirme
+// Ana sayfaya girildiğinde giriş ekranını açar
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'giris.html'));
 });
 
-// Sayfaların isimleriyle çağrılabilmesi için (index.html, admin.html vb.)
+// Sayfaların adıyla çağrılabilmesi için (index.html vb.)
 app.get('/:page.html', (req, res) => {
-    const page = req.params.page;
-    res.sendFile(path.join(__dirname, `${page}.html`));
-});
-
-// KAYIT OL
-app.post('/api/auth/register', (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ message: "Eksik bilgi girdiniz." });
-    
-    const userExists = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if (userExists) return res.status(400).json({ message: "Bu kullanıcı adı zaten alınmış!" });
-
-    users.push({ username, password, role: "user" });
-    return res.status(200).json({ message: "Kayıt işlemi başarılı!" });
+    res.sendFile(path.join(__dirname, `${req.params.page}.html`));
 });
 
 // GİRİŞ YAP
 app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
     
-    if (!user) return res.status(400).json({ message: "Kullanıcı adı veya şifre yanlış!" });
+    if (!username || !password) {
+        return res.status(400).json({ message: "Kullanıcı adı veya şifre boş bırakılamaz!" });
+    }
+
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase().trim() && u.password === password.trim());
+    
+    if (!user) {
+        return res.status(400).json({ message: "Kullanıcı adı veya şifre yanlış!" });
+    }
     
     return res.status(200).json({ username: user.username, role: user.role });
 });
 
-// S SİPARİŞ OLUŞTUR
+// SİPARİŞ OLUŞTUR
 app.post('/api/orders', (req, res) => {
     const { username, address, product } = req.body;
     if (!username || !address || !product) return res.status(400).json({ message: "Sipariş bilgileri eksik." });
@@ -61,7 +61,9 @@ app.post('/api/orders', (req, res) => {
 // SİPARİŞLERİ ÇEK
 app.get('/api/orders', (req, res) => {
     const requester = req.query.username; 
-    const user = users.find(u => u.username.toLowerCase() === requester.toLowerCase());
+    if (!requester) return res.status(403).json({ message: "Yetkisiz erişim!" });
+
+    const user = users.find(u => u.username.toLowerCase() === requester.toLowerCase().trim());
 
     if (!user || user.role !== 'admin') {
         return res.status(403).json({ message: "Bu sayfayı görüntülemek için yönetici yetkiniz yok!" });
