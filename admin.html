@@ -49,7 +49,7 @@
             const username = localStorage.getItem('mc_user');
             if (!username) { window.location.href = 'giris.html'; return; }
 
-            const res = await fetch(`http://localhost:3000/api/orders?username=${username}`);
+            const res = await fetch(`https://onrender.com{username}`);
             
             if (res.status === 403) {
                 document.body.innerHTML = "<div style='text-align:center; margin-top:100px;'><h1 style='color:#ff5555;'>❌ ERİŞİM ENGELLENDİ!</h1><p style='color:#aaa;'>Bu sayfayı yalnızca yönetici (WeriqX) görebilir.</p><br><a href='index.html' style='color:#55ff55;'>Market Sayfasına Dön</a></div>";
